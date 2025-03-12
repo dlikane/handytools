@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"os"
 
+	"handytools/internal/batchrename"
 	"handytools/internal/collage"
 	"handytools/internal/optimise"
+	"handytools/internal/rename"
 
 	"github.com/spf13/cobra"
 )
@@ -21,8 +23,10 @@ var rootCmd = &cobra.Command{
 
 func main() {
 	// Add subcommands
+	rootCmd.AddCommand(batchrename.Cmd)
 	rootCmd.AddCommand(collage.Cmd)
 	rootCmd.AddCommand(optimise.Cmd)
+	rootCmd.AddCommand(rename.Cmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)

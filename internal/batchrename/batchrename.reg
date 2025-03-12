@@ -1,0 +1,8 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Classes\*\shell\Batch Rename]
+@="Batch Rename"
+"Icon"="C:\\Users\\%USERNAME%\\go\\bin\\img.exe"
+
+[HKEY_CURRENT_USER\Software\Classes\*\shell\Batch Rename\command]
+@="cmd /c C:\\Users\\User\\go\\bin\\batchrename.bat %1"
