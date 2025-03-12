@@ -1,10 +1,8 @@
 package optimise
 
 import (
-	"handytools/pkg/common"
-	"path/filepath"
-
 	"github.com/spf13/cobra"
+	"handytools/pkg/common"
 )
 
 type Config struct {
@@ -26,7 +24,7 @@ var Cmd = &cobra.Command{
 			logger.Error("No images provided. Use wildcard or file list.")
 			return
 		}
-		config.InputFiles = expandWildcards(args)
+		config.InputFiles = common.ExpandWildcards(args)
 		logger.Infof("Running optimise with config: %+v\n", config)
 		optimiseImages(config)
 	},
@@ -34,18 +32,4 @@ var Cmd = &cobra.Command{
 
 func init() {
 	Cmd.Flags().BoolVarP(&config.Apply, "apply", "a", false, "Apply changes (default is dry-run)")
-}
-
-// Expand wildcards to get actual file paths
-func expandWildcards(patterns []string) []string {
-	var files []string
-	for _, pattern := range patterns {
-		matches, err := filepath.Glob(pattern)
-		if err != nil {
-			logger.WithField("pattern", pattern).Error("Error processing wildcard")
-			continue
-		}
-		files = append(files, matches...)
-	}
-	return files
 }
