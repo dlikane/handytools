@@ -13,7 +13,8 @@ import (
 	"github.com/disintegration/imaging"
 )
 
-const maxSize = 3000 // Maximum size for web images
+const midSize = 3000
+const smallSize = 1000
 
 func optimiseImages(cfg Config) {
 	logger := common.GetLogger()
@@ -44,6 +45,10 @@ func optimiseImages(cfg Config) {
 		origSize := origFileInfo.Size()
 		file.Close()
 
+		maxSize := midSize
+		if cfg.Small {
+			maxSize = smallSize
+		}
 		if origWidth <= maxSize && origHeight <= maxSize {
 			logger.Infof("Skipping %s (already within size limits)", filePath)
 			continue
