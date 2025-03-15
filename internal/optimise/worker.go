@@ -16,6 +16,8 @@ import (
 const midSize = 3000
 const smallSize = 1000
 
+const jpegQuality = 85 // Adjust as needed (1-100)
+
 func optimiseImages(cfg Config) {
 	logger := common.GetLogger()
 
@@ -61,7 +63,7 @@ func optimiseImages(cfg Config) {
 		tempOutputPath := filePath[:len(filePath)-len(ext)] + "_temp" + ext
 
 		// Save using correct format
-		err = imaging.Save(resizedImg, tempOutputPath)
+		err = imaging.Save(resizedImg, tempOutputPath, imaging.JPEGQuality(jpegQuality))
 		if err != nil {
 			logger.WithError(err).Errorf("Failed to save resized image: %s", filePath)
 			continue
