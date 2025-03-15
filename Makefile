@@ -4,6 +4,28 @@
 BINARY_NAME := img
 CMD_PATH := ./cmd/img
 
+#
+# Windows batch rename setup
+#
+DEPLOY_DIR := C:\Users\User\go\bin
+REG_FILE := internal/batchrename/batchrename.reg
+SRC_BAT := internal/batchrename/batchrename.bat
+SRC_VBS := internal/batchrename/batchrename.vbs
+
+.PHONY: deploy-win
+deploy-win: deploy ## Take care of Windows deployment
+	@if not exist "$(DEPLOY_DIR)" mkdir "$(DEPLOY_DIR)"
+	@powershell -Command "if (Test-Path '$(SRC_BAT)') { Copy-Item -Force '$(SRC_BAT)' '$(DEPLOY_DIR)\batchrename.bat' } else { Write-Host 'Warning: $(SRC_BAT) not found' }"
+	@powershell -Command "if (Test-Path '$(SRC_VBS)') { Copy-Item -Force '$(SRC_VBS)' '$(DEPLOY_DIR)\batchrename.vbs' } else { Write-Host 'Warning: $(SRC_VBS) not found' }"
+	@powershell -Command "if (Test-Path '$(REG_FILE)') { Start-Process reg -ArgumentList 'import $(REG_FILE)' -NoNewWindow -Wait } else { Write-Host 'Warning: $(REG_FILE) not found' }"
+	@echo "Batch rename helper files installed"
+
+.PHONY: deploy
+deploy:  ## Install and deploy batch rename
+	@echo "Installing $(BINARY_NAME) globally..."
+	go install $(CMD_PATH)
+
+# Helper commands
 .PHONY: help
 help: ## Display this help message
 	@echo Available commands:
@@ -18,12 +40,6 @@ build: ## Build the img binary
 run: build ## Run the application
 	@echo "Running $(BINARY_NAME)..."
 	./$(BINARY_NAME)
-
-.PHONY: deploy
-deploy: ## Install img globally
-	@echo "Installing $(BINARY_NAME) globally..."
-	go install $(CMD_PATH)
-	@echo "Deployment complete! Run '$(BINARY_NAME)' from anywhere."
 
 .PHONY: clean
 clean: ## Remove built binary
@@ -45,8 +61,8 @@ test: ## Run tests
 	@echo "Running tests..."
 	go test ./...
 
-.PHONY: install
-install: ## Install dependencies
+.PHONY: install-deps
+install-deps: ## Install dependencies
 	@echo "Installing dependencies..."
 	go mod tidy
 

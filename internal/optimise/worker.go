@@ -13,7 +13,10 @@ import (
 	"github.com/disintegration/imaging"
 )
 
-const maxSize = 3000 // Maximum size for web images
+const midSize = 3000
+const smallSize = 1000
+
+const jpegQuality = 85 // Adjust as needed (1-100)
 
 func optimiseImages(cfg Config) {
 	logger := common.GetLogger()
@@ -44,6 +47,10 @@ func optimiseImages(cfg Config) {
 		origSize := origFileInfo.Size()
 		file.Close()
 
+		maxSize := midSize
+		if cfg.Small {
+			maxSize = smallSize
+		}
 		if origWidth <= maxSize && origHeight <= maxSize {
 			logger.Infof("Skipping %s (already within size limits)", filePath)
 			continue
@@ -56,7 +63,7 @@ func optimiseImages(cfg Config) {
 		tempOutputPath := filePath[:len(filePath)-len(ext)] + "_temp" + ext
 
 		// Save using correct format
-		err = imaging.Save(resizedImg, tempOutputPath)
+		err = imaging.Save(resizedImg, tempOutputPath, imaging.JPEGQuality(jpegQuality))
 		if err != nil {
 			logger.WithError(err).Errorf("Failed to save resized image: %s", filePath)
 			continue

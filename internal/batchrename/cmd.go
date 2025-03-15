@@ -123,6 +123,4 @@ func applyChanges(cfg RenameConfig) {
 		}
 		counter++
 	}
-
-	zenity.Info("Batch rename completed successfully!", zenity.Title("Success"))
 }

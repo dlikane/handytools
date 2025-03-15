@@ -3,6 +3,7 @@ Windows Registry Editor Version 5.00
 [HKEY_CURRENT_USER\Software\Classes\*\shell\Batch Rename]
 @="Batch Rename"
 "Icon"="C:\\Users\\%USERNAME%\\go\\bin\\img.exe"
+"CommandFlags"=dword:00000040
 
 [HKEY_CURRENT_USER\Software\Classes\*\shell\Batch Rename\command]
-@="cmd /c C:\\Users\\User\\go\\bin\\batchrename.bat %1"
+@="wscript.exe C:\\Users\\User\\go\\bin\\batchrename.vbs %1"
