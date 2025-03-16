@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"handytools/internal/grab"
 	"os"
 
 	"handytools/internal/batchrename"
@@ -25,6 +26,7 @@ func main() {
 	// Add subcommands
 	rootCmd.AddCommand(batchrename.Cmd)
 	rootCmd.AddCommand(collage.Cmd)
+	rootCmd.AddCommand(grab.Cmd)
 	rootCmd.AddCommand(optimise.Cmd)
 	rootCmd.AddCommand(rename.Cmd)
 
