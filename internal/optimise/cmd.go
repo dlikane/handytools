@@ -7,8 +7,8 @@ import (
 
 type Config struct {
 	InputFiles []string
+	Profile    string
 	Apply      bool
-	Small      bool
 }
 
 var (
@@ -33,5 +33,5 @@ var Cmd = &cobra.Command{
 
 func init() {
 	Cmd.Flags().BoolVarP(&config.Apply, "apply", "a", false, "Apply changes (default is dry-run)")
-	Cmd.Flags().BoolVarP(&config.Small, "small", "s", false, "Enable small-size optimisation")
+	Cmd.Flags().StringVarP(&config.Profile, "profile", "p", "x-smalmakl", "Profile size (x-small, small, med, large, x-large)")
 }

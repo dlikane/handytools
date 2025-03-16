@@ -5,18 +5,23 @@ import (
 	"github.com/sirupsen/logrus"
 	"handytools/pkg/common"
 	"image"
-	_ "image/jpeg" // Support JPEG decoding
-	_ "image/png"  // Support PNG decoding
+	_ "image/jpeg"
+	_ "image/png"
 	"os"
 	"path/filepath"
 
 	"github.com/disintegration/imaging"
 )
 
-const midSize = 3000
-const smallSize = 1000
+var profiles = map[string]int{
+	"x-small": 1080,
+	"small":   1440,
+	"med":     1920,
+	"large":   2560,
+	"x-large": 0, // original size, no resizing
+}
 
-const jpegQuality = 85 // Adjust as needed (1-100)
+const jpegQuality = 85
 
 func optimiseImages(cfg Config) {
 	logger := common.GetLogger()
@@ -24,6 +29,12 @@ func optimiseImages(cfg Config) {
 	if !cfg.Apply {
 		common.SetDryRunMode(true)
 		logger.Info("Running in DRYRUN mode")
+	}
+
+	maxSize, exists := profiles[cfg.Profile]
+	if !exists {
+		logger.Errorf("Invalid profile: %s", cfg.Profile)
+		return
 	}
 
 	for _, filePath := range cfg.InputFiles {
@@ -47,12 +58,8 @@ func optimiseImages(cfg Config) {
 		origSize := origFileInfo.Size()
 		file.Close()
 
-		maxSize := midSize
-		if cfg.Small {
-			maxSize = smallSize
-		}
-		if origWidth <= maxSize && origHeight <= maxSize {
-			logger.Infof("Skipping %s (already within size limits)", filePath)
+		if maxSize == 0 || (origWidth <= maxSize && origHeight <= maxSize) {
+			logger.Infof("Skipping %s (already within size limits or original size requested)", filePath)
 			continue
 		}
 
@@ -62,7 +69,6 @@ func optimiseImages(cfg Config) {
 		ext := filepath.Ext(filePath)
 		tempOutputPath := filePath[:len(filePath)-len(ext)] + "_temp" + ext
 
-		// Save using correct format
 		err = imaging.Save(resizedImg, tempOutputPath, imaging.JPEGQuality(jpegQuality))
 		if err != nil {
 			logger.WithError(err).Errorf("Failed to save resized image: %s", filePath)
@@ -73,8 +79,8 @@ func optimiseImages(cfg Config) {
 		newSize := newFileInfo.Size()
 
 		logger.Infof("Processed: %s", filePath)
-		logger.Infof("Original: %dx%d, %.2f MB", origWidth, origHeight, float64(origSize)/1024/1024)
-		logger.Infof("Resized : %dx%d, %.2f MB", newWidth, newHeight, float64(newSize)/1024/1024)
+		logger.Infof("Original: %dx%d, %.2f MB", origWidth, origHeight, float64(origSize)/(1024*1024))
+		logger.Infof("New size: %dx%d, %.2f MB", newWidth, newHeight, float64(newSize)/(1024*1024))
 
 		if cfg.Apply {
 			if err := replaceFile(tempOutputPath, filePath, logger); err != nil {
@@ -88,33 +94,18 @@ func optimiseImages(cfg Config) {
 }
 
 func replaceFile(tempPath, originalPath string, logger *logrus.Logger) error {
-	// Ensure the original file is writable
-	if err := os.Chmod(originalPath, 0666); err != nil {
-		logger.WithError(err).Warnf("Failed to modify permissions for: %s", originalPath)
-	}
-
-	// Remove the original file before renaming
 	if err := os.Remove(originalPath); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to remove original file: %w", err)
 	}
-
-	// Rename temp file to original filename
 	if err := os.Rename(tempPath, originalPath); err != nil {
-		return fmt.Errorf("failed to rename temp file: %w", err)
+		return fmt.Errorf("failed to rename file: %w", err)
 	}
-
-	logger.Infof("Successfully replaced original file: %s", originalPath)
 	return nil
 }
 
-func scaleDimensions(width, height, maxSize int) (int, int) {
-	if width > height {
-		newWidth := maxSize
-		newHeight := int(float64(height) * (float64(maxSize) / float64(width)))
-		return newWidth, newHeight
-	} else {
-		newHeight := maxSize
-		newWidth := int(float64(width) * (float64(maxSize) / float64(height)))
-		return newWidth, newHeight
+func scaleDimensions(origWidth, origHeight, maxSize int) (int, int) {
+	if origWidth > origHeight {
+		return maxSize, int(float64(origHeight) * float64(maxSize) / float64(origWidth))
 	}
+	return int(float64(origWidth) * (float64(maxSize) / float64(origHeight))), maxSize
 }
