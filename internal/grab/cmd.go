@@ -25,6 +25,7 @@ func expandWildcards(paths []string) []string {
 	for _, path := range paths {
 		if strings.Contains(path, "*") {
 			root := filepath.Dir(path)
+
 			pattern := filepath.Base(path)
 			filepath.Walk(root, func(fp string, fi os.FileInfo, err error) error {
 				if err != nil || fi.IsDir() {
