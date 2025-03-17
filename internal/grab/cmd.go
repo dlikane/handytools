@@ -27,8 +27,10 @@ Examples:
   grab ./docs       # Grab all files inside the 'docs' directory`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		inputPaths := expandWildcards(args)
-		grabFiles(inputPaths)
+		inclusionList := expandWildcards(args)
+		exclusionList := expandWildcards(excludePatterns)
+		filteredPaths := filterExcluded(inclusionList, exclusionList)
+		grabFiles(filteredPaths)
 	},
 }
 
@@ -41,30 +43,26 @@ func expandWildcards(paths []string) []string {
 	var expanded []string
 
 	for _, path := range paths {
-		if strings.Contains(path, "*") {
-			var baseDir, pattern string
+		path = filepath.ToSlash(filepath.Clean(path))
 
-			if strings.Contains(path, "...") {
-				baseDir = strings.Split(path, "...")[0]
-				pattern = strings.TrimPrefix(path, baseDir+"...")
-				if pattern == "" {
-					pattern = "*"
-				}
-				filepath.Walk(baseDir, func(fp string, fi os.FileInfo, err error) error {
-					if err != nil || fi.IsDir() {
-						return nil
-					}
-					if matched, _ := filepath.Match(pattern, filepath.Base(fp)); matched {
-						expanded = append(expanded, fp)
-					}
-					return nil
-				})
-			} else {
-				baseDir = filepath.Dir(path)
-				pattern = filepath.Base(path)
-				files, _ := filepath.Glob(filepath.Join(baseDir, pattern))
-				expanded = append(expanded, files...)
+		if strings.Contains(path, "...") {
+			baseDir := strings.Split(path, "...")[0]
+			if baseDir == "" {
+				baseDir = "."
 			}
+
+			_ = filepath.Walk(baseDir, func(fp string, fi os.FileInfo, err error) error {
+				if err != nil {
+					return nil
+				}
+				if !fi.IsDir() {
+					expanded = append(expanded, fp)
+				}
+				return nil
+			})
+		} else if strings.Contains(path, "*") {
+			files, _ := filepath.Glob(path)
+			expanded = append(expanded, files...)
 		} else {
 			expanded = append(expanded, path)
 		}
@@ -72,50 +70,26 @@ func expandWildcards(paths []string) []string {
 	return expanded
 }
 
-func matchesExcludePattern(file string) bool {
-	for _, pattern := range excludePatterns {
-		if matched, _ := filepath.Match(pattern, filepath.Base(file)); matched {
-			return true
+func filterExcluded(included, excluded []string) []string {
+	filtered := []string{}
+	excludedSet := make(map[string]bool)
+	for _, file := range excluded {
+		excludedSet[file] = true
+	}
+
+	for _, file := range included {
+		if !excludedSet[file] {
+			filtered = append(filtered, file)
 		}
 	}
-	return false
+	return filtered
 }
 
 func grabFiles(paths []string) {
-	var collectedFiles []string
-	var excludedFiles []string
 	var totalLines int
 	fileLineCounts := make(map[string]int)
 
-	for _, path := range paths {
-		info, err := os.Stat(path)
-		if err != nil {
-			fmt.Printf("Error accessing %s: %v\n", path, err)
-			continue
-		}
-
-		if info.IsDir() {
-			filepath.Walk(path, func(fp string, fi os.FileInfo, err error) error {
-				if err != nil || fi.IsDir() {
-					return nil
-				}
-				if matchesExcludePattern(fp) {
-					excludedFiles = append(excludedFiles, fp)
-					return nil
-				}
-				collectedFiles = append(collectedFiles, fp)
-				return nil
-			})
-		} else {
-			if matchesExcludePattern(path) {
-				excludedFiles = append(excludedFiles, path)
-				continue
-			}
-			collectedFiles = append(collectedFiles, path)
-		}
-	}
-
-	for _, file := range collectedFiles {
+	for _, file := range paths {
 		content, err := ioutil.ReadFile(file)
 		if err == nil {
 			lines := strings.Count(string(content), "\n") + 1
@@ -129,15 +103,8 @@ func grabFiles(paths []string) {
 		}
 	}
 
-	fmt.Printf("\nProvided (%d files %d lines):\n", len(collectedFiles), totalLines)
-	for _, file := range collectedFiles {
+	fmt.Printf("\nProvided (%d files %d lines):\n", len(paths), totalLines)
+	for _, file := range paths {
 		fmt.Printf("%s (%d)\n", file, fileLineCounts[file])
-	}
-
-	if len(excludedFiles) > 0 {
-		fmt.Println("Excluded:")
-		for _, file := range excludedFiles {
-			fmt.Printf("- %s\n", file)
-		}
 	}
 }
