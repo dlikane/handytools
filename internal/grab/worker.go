@@ -86,8 +86,9 @@ func grabFiles(paths []string, listOnly bool) {
 		}
 	}
 
-	fmt.Printf("\nProvided (%d files %d lines):\n", len(paths), totalLines)
+	fmt.Printf("\nList of provided files (lines)\n")
 	for _, file := range paths {
 		fmt.Printf("%s (%d)\n", file, fileLineCounts[file])
 	}
+	fmt.Printf("\nTotally provided: %d files %d lines\n", len(paths), totalLines)
 }
