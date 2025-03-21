@@ -9,6 +9,7 @@ type Config struct {
 	InputFiles []string
 	Profile    string
 	Apply      bool
+	Stat       bool
 }
 
 var (
@@ -21,6 +22,11 @@ var Cmd = &cobra.Command{
 	Short: "Optimise image file size",
 	Long:  "Optimises images by reducing file size while maintaining quality.",
 	Run: func(cmd *cobra.Command, args []string) {
+		if config.Apply && config.Stat {
+			logger.Error("Cannot use --apply and --stat together")
+			return
+		}
+
 		if len(args) == 0 {
 			logger.Error("No images provided. Use wildcard or file list.")
 			return
@@ -33,5 +39,6 @@ var Cmd = &cobra.Command{
 
 func init() {
 	Cmd.Flags().BoolVarP(&config.Apply, "apply", "a", false, "Apply changes (default is dry-run)")
-	Cmd.Flags().StringVarP(&config.Profile, "profile", "p", "x-smalmakl", "Profile size (x-small, small, med, large, x-large)")
+	Cmd.Flags().BoolVarP(&config.Stat, "stat", "s", false, "Collect image profile statistics (mutually exclusive with --apply)")
+	Cmd.Flags().StringVarP(&config.Profile, "profile", "p", "x-small", "Profile size (x-small, small, med, large, x-large)")
 }

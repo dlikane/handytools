@@ -1,0 +1,15 @@
+20250322
+
+add extra optional parameter -s --stat which would collect information about each file to be converted to each profile and give summary against file. It can't be selected same time as -a
+Trim reporting instead or Processed:, Original. New size. Give something like:
+for stat:
+  fileName org: 9384x8734 343 MB x-large: 3434x23434 250 MB large: 3434x3434 343 MB med: 343x3434 333 MB small: 3434x343 222 MB x-small: 3422x444 0.55 MB
+other:
+  fileName org: 9384x8734 343 MB large: 3434x3434 343 MB (- applied)
+
+and totals at the end:
+for stat:
+  files: 35 org: 34343 MB x-large: 250 MB large: 343 MB med: 333 MB small: 222 MB x-small: 0.55 MB
+other
+  files: 35 org: 34343 MB large: 343 MB (- applied)
+

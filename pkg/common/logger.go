@@ -1,19 +1,23 @@
 package common
 
 import (
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"os"
 )
+
+// CustomFormatter removes timestamp and formats as: level: message
+type CustomFormatter struct{}
+
+func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
+	return []byte(fmt.Sprintf("%s: %s\n", entry.Level.String(), entry.Message)), nil
+}
 
 // Global logger instance
 var log = logrus.New()
 
 func init() {
-	log.SetFormatter(&logrus.TextFormatter{
-		FullTimestamp:   true,
-		TimestampFormat: "2006-01-02 15:04:05",
-		DisableColors:   false, // Enable colorized output
-	})
+	log.SetFormatter(&CustomFormatter{})
 	log.SetOutput(os.Stdout)
 	log.SetLevel(logrus.InfoLevel)
 }
@@ -38,7 +42,7 @@ func (h *DryRunHook) Fire(entry *logrus.Entry) error {
 
 // Levels specifies which log levels this hook applies to
 func (h *DryRunHook) Levels() []logrus.Level {
-	return logrus.AllLevels // Apply to all log levels
+	return logrus.AllLevels
 }
 
 // SetDryRunMode enables or disables the DRYRUN prefix
