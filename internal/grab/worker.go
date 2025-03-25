@@ -17,8 +17,7 @@ type Config struct {
 
 func RunWorker(config Config) {
 	inclusionList := expandWildcards(config.Inputs)
-	exclusionList := expandWildcards(config.ExcludePatterns)
-	filteredPaths := filterExcluded(inclusionList, exclusionList)
+	filteredPaths := filterExcluded(inclusionList, config.ExcludePatterns)
 	grabFiles(filteredPaths, config.ListOnly)
 }
 
@@ -39,29 +38,35 @@ func expandWildcards(paths []string) []string {
 					return nil
 				}
 				if !fi.IsDir() {
-					expanded = append(expanded, fp)
+					expanded = append(expanded, filepath.ToSlash(fp))
 				}
 				return nil
 			})
 		} else if strings.Contains(path, "*") {
 			files, _ := filepath.Glob(path)
-			expanded = append(expanded, files...)
+			for _, f := range files {
+				expanded = append(expanded, filepath.ToSlash(f))
+			}
 		} else {
-			expanded = append(expanded, path)
+			expanded = append(expanded, filepath.ToSlash(path))
 		}
 	}
 	return expanded
 }
 
-func filterExcluded(included, excluded []string) []string {
+func filterExcluded(included []string, excludedPatterns []string) []string {
 	filtered := []string{}
-	excludedSet := make(map[string]bool)
-	for _, file := range excluded {
-		excludedSet[file] = true
-	}
 
 	for _, file := range included {
-		if !excludedSet[file] {
+		skip := false
+		for _, pattern := range excludedPatterns {
+			cleaned := strings.TrimSuffix(filepath.ToSlash(pattern), "...")
+			if strings.Contains(file, cleaned+"/") || strings.Contains(file, "/"+cleaned+"/") || strings.Contains(file, "/"+cleaned) {
+				skip = true
+				break
+			}
+		}
+		if !skip {
 			filtered = append(filtered, file)
 		}
 	}
@@ -90,4 +95,5 @@ func grabFiles(paths []string, listOnly bool) {
 	for _, file := range paths {
 		fmt.Printf("%s (%d)\n", file, fileLineCounts[file])
 	}
+	fmt.Printf("\nTotal (%d files %d lines):\n", len(paths), totalLines)
 }

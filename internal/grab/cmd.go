@@ -28,14 +28,39 @@ var Cmd = &cobra.Command{
 	Short: "Recursively grab and display file contents from provided files or directories",
 	Long: `Recursively grab and display file contents from provided files or directories.
 
-Supports doublestar-style file selection:
-- './**/*.txt' to select all .txt files in all subdirectories
-- './*.*' to select all files in a single directory
+⚠️ When using wildcards (* or ...), wrap arguments in quotes to prevent shell expansion.
+
+Go-style file selection examples:
+
+Single Directory (Non-Recursive):
+  ".*"             # All files in the current directory
+  "./*.go"         # All .go files in the current directory
+  "./*.*"          # All files with an extension in the current directory
+
+Recursive (All Subdirectories):
+  "./.../*"        # All files in current directory and all subdirectories
+  "./.../*.go"     # All .go files in subdirectories
+  "src/.../*"      # All files in 'src/' and its subdirectories
+  "src/.../*.txt"  # All .txt files in 'src/' and its subdirectories
+
+Specific File Types:
+  "./.../*.md"     # All Markdown files
+  "./.../*.json"   # All JSON files
+  "./.../*.yaml"   # All YAML files
+
+Files with Specific Prefixes/Suffixes:
+  "./config*"         # Files starting with 'config' in current dir
+  "./.../config*"     # Files starting with 'config' in all subdirs
+  "./.../*_test.go"   # All Go test files in all subdirs
+
+To exclude files/directories:
+  -e "*.log" -e "node_modules/..." -x
 
 Examples:
-  grab ./**/*.txt  # Grab all .txt files in subdirectories
-  grab ./*.go      # Grab all Go files in the current directory
-  grab ./docs      # Grab all files inside the 'docs' directory`,
+  grab "./.../*.txt"
+  grab "./*.go"
+  grab "./apps/kyc-service/..." -e "node_modules/..." -l
+`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		config.Inputs = args
