@@ -18,7 +18,8 @@ var profiles = map[string]int{
 	"small":   1440,
 	"med":     1920,
 	"large":   2560,
-	"x-large": 0, // original size, no resizing
+	"x-large": 0,    // original size, no resizing
+	"insta":   1350, // insta optimal 1080 x 1350 4:5 portrait
 }
 
 const jpegQuality = 85

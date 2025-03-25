@@ -40,5 +40,5 @@ var Cmd = &cobra.Command{
 func init() {
 	Cmd.Flags().BoolVarP(&config.Apply, "apply", "a", false, "Apply changes (default is dry-run)")
 	Cmd.Flags().BoolVarP(&config.Stat, "stat", "s", false, "Collect image profile statistics (mutually exclusive with --apply)")
-	Cmd.Flags().StringVarP(&config.Profile, "profile", "p", "x-small", "Profile size (x-small, small, med, large, x-large)")
+	Cmd.Flags().StringVarP(&config.Profile, "profile", "p", "insta", "Profile size (x-small, small, med, large, x-large, insta)")
 }
