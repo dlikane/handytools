@@ -21,6 +21,7 @@ var defaultExclusions = []string{
 	"node_modules/...",
 	"go.sum",
 	".*",
+	"_*",
 }
 
 var Cmd = &cobra.Command{
