@@ -25,7 +25,14 @@ func RunWorker(config Config) {
 
 	var filteredPaths []string
 	for _, incl := range inclusionList {
-		if _, excluded := exclusionMap[incl]; !excluded {
+		skip := false
+		for excl := range exclusionMap {
+			if strings.HasPrefix(incl, excl+"/") || strings.HasPrefix(incl, excl) || strings.Contains(incl, "/"+excl+"/") {
+				skip = true
+				break
+			}
+		}
+		if !skip {
 			filteredPaths = append(filteredPaths, incl)
 		}
 	}
