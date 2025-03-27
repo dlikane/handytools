@@ -17,7 +17,25 @@ type Config struct {
 
 func RunWorker(config Config) {
 	inclusionList := expandWildcards(config.Inputs)
-	filteredPaths := filterExcluded(inclusionList, config.ExcludePatterns)
+	exclusionList := expandWildcards(config.ExcludePatterns)
+	exclusionMap := make(map[string]struct{})
+	for _, e := range exclusionList {
+		exclusionMap[e] = struct{}{}
+	}
+
+	var filteredPaths []string
+	for _, incl := range inclusionList {
+		skip := false
+		for excl := range exclusionMap {
+			if strings.HasPrefix(incl, excl+"/") || strings.HasPrefix(incl, excl) || strings.Contains(incl, "/"+excl+"/") {
+				skip = true
+				break
+			}
+		}
+		if !skip {
+			filteredPaths = append(filteredPaths, incl)
+		}
+	}
 	grabFiles(filteredPaths, config.ListOnly)
 }
 
@@ -52,25 +70,6 @@ func expandWildcards(paths []string) []string {
 		}
 	}
 	return expanded
-}
-
-func filterExcluded(included []string, excludedPatterns []string) []string {
-	filtered := []string{}
-
-	for _, file := range included {
-		skip := false
-		for _, pattern := range excludedPatterns {
-			cleaned := strings.TrimSuffix(filepath.ToSlash(pattern), "...")
-			if strings.Contains(file, cleaned+"/") || strings.Contains(file, "/"+cleaned+"/") || strings.Contains(file, "/"+cleaned) {
-				skip = true
-				break
-			}
-		}
-		if !skip {
-			filtered = append(filtered, file)
-		}
-	}
-	return filtered
 }
 
 func grabFiles(paths []string, listOnly bool) {
