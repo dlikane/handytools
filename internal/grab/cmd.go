@@ -19,6 +19,7 @@ var defaultExclusions = []string{
 	"package-lock.json",
 	"pnpm-lock.yaml",
 	"node_modules/...",
+	"vendor/...",
 	"go.sum",
 	".*",
 	"_*",
@@ -44,7 +45,7 @@ Examples:
   grab "./*.go"
   grab "./apps/kyc-service/..." -e "node_modules/..." -l
 `,
-	Args: cobra.MinimumNArgs(1),
+	Args: cobra.MinimumNArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 0 {
 			args = []string{"./..."}
