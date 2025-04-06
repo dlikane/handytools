@@ -1,4 +1,12 @@
 20250327
+I want to do some files renaming:
+I have a lot of files in: R:\Dropbox\Apps\my-photo-site
+I want to find all files from R:\Dropbox\Apps\my-photo-site\b&w in other directories and if found, I want destination file name to change from
+current format Name_2005_0000.jpg to Name_2005_0000_b&w_fav.jpg
+Should be 2 options: 1 to run and only show which way files would be renamed (and which ones from original dir can't be found) and
+2 when run with -a apply switch, should make renaming
+
+I would want to re-run it for other dir and suffix (b&w, b&w_fav; dance, dance_fav; misc, misc_fav; portrait, portrait_fav)
 
 
 20250322

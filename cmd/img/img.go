@@ -7,7 +7,6 @@ import (
 	"handytools/internal/batchrename"
 	"handytools/internal/collage"
 	"handytools/internal/grab"
-	"handytools/internal/imgui"
 	"handytools/internal/optimise"
 	"handytools/internal/rename"
 
@@ -29,14 +28,6 @@ func init() {
 	rootCmd.AddCommand(grab.Cmd)
 	rootCmd.AddCommand(optimise.Cmd)
 	rootCmd.AddCommand(rename.Cmd)
-
-	rootCmd.AddCommand(&cobra.Command{
-		Use:   "exploreui",
-		Short: "Launch GUI file explorer",
-		Run: func(cmd *cobra.Command, args []string) {
-			imgui.Run()
-		},
-	})
 }
 
 func main() {

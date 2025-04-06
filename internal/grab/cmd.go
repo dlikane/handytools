@@ -20,8 +20,7 @@ var defaultExclusions = []string{
 	"pnpm-lock.yaml",
 	"node_modules/...",
 	"go.sum",
-	".*",
-	"_*",
+	"vendor/...",
 }
 
 var Cmd = &cobra.Command{
