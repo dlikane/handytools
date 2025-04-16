@@ -1,3 +1,18 @@
+20250415
+Can you write go script to get pins from pinterest board and assemble them to image.
+Let's have new internal/pinterest which would get pinterest board URL (example: https://pin.it/7kvMjAV3t)
+Configure mode: fit, compact, medium, large.
+For compact try to get 6 images horizontally, for medium: 3, for large 1. For fit: make sure all images fit to single output image.
+Try to pack images as tight as possible. Keep image portrait, let's try to have 1080x1920 for now, might change later.
+Split to multiple images if doesn't fit.
+Make optional output flag: -o path/file.jpg (make it path/file_01.jpg, path_02.jpg, etc)
+
+Need to make a few changes:
+- it only downloaded 15 pins though there are 22 pins on board
+- for fit or compact - we need to fill as much of output as possible. We don't have to have 6 images across, that's only maximum
+- need to be more creative with portrait and landscape images to maximise use of free space
+
+
 20250327
 I want to do some files renaming:
 I have a lot of files in: R:\Dropbox\Apps\my-photo-site

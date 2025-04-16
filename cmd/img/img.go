@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"handytools/internal/pinterest"
 	"os"
 
 	"handytools/internal/batchrename"
@@ -28,6 +29,7 @@ func init() {
 	rootCmd.AddCommand(grab.Cmd)
 	rootCmd.AddCommand(optimise.Cmd)
 	rootCmd.AddCommand(rename.Cmd)
+	rootCmd.AddCommand(pinterest.Cmd)
 }
 
 func main() {
