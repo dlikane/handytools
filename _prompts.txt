@@ -1,3 +1,10 @@
+
+I want to scroll through page (a little bit at the time), look for img nested to div with
+data-grid-item="true" but without div with data-test-id="related-interests-multi-column-module"
+
+
+
+
 20250415
 Can you write go script to get pins from pinterest board and assemble them to image.
 Let's have new internal/pinterest which would get pinterest board URL (example: https://pin.it/7kvMjAV3t)

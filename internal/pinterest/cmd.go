@@ -1,9 +1,12 @@
 package pinterest
 
 import (
+	"fmt"
 	"handytools/pkg/common"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -13,6 +16,7 @@ type Config struct {
 	BoardURL string
 	Output   string
 	Layout   string
+	Edit     bool
 }
 
 var config Config
@@ -35,7 +39,7 @@ var Cmd = &cobra.Command{
 
 		imagePaths, err := DownloadPins(config.BoardURL, tempDir)
 		if err != nil {
-			logger.WithError(err).Error("Failed to download pins")
+			logger.Errorf("Failed to download pins: %+v", err)
 			return
 		}
 
@@ -45,6 +49,23 @@ var Cmd = &cobra.Command{
 		}
 
 		logger.Infof("Downloaded %d pins", len(imagePaths))
+
+		if config.Edit {
+			logger.Info("Opening temp folder for manual edits...")
+			openInExplorer(tempDir)
+
+			fmt.Println("Press ENTER when done editing the images...")
+			fmt.Scanln()
+
+			imagePaths = nil
+			entries, _ := os.ReadDir(tempDir)
+			for _, entry := range entries {
+				if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".jpg") {
+					imagePaths = append(imagePaths, filepath.Join(tempDir, entry.Name()))
+				}
+			}
+			logger.Infof("Reloaded %d images after editing", len(imagePaths))
+		}
 
 		output := strings.TrimSuffix(config.Output, ".jpg")
 		err = AssembleImages(imagePaths, config.Layout, output)
@@ -58,4 +79,18 @@ func init() {
 	Cmd.Flags().StringVarP(&config.BoardURL, "url", "u", "", "Pinterest board URL (e.g., https://pin.it/7kvMjAV3t)")
 	Cmd.Flags().StringVarP(&config.Output, "output", "o", "pinterest.jpg", "Output image path prefix (e.g., output/pin.jpg → output/pin_01.jpg etc)")
 	Cmd.Flags().StringVarP(&config.Layout, "layout", "l", "fit", "Layout mode: compact (6x), medium (3x), large (1x), fit (auto-fit into 1080x1920)")
+	Cmd.Flags().BoolVarP(&config.Edit, "edit", "e", false, "Edit mode: open downloaded images before assembling")
+}
+
+func openInExplorer(path string) {
+	switch runtime.GOOS {
+	case "windows":
+		_ = exec.Command("explorer", path).Start()
+	case "darwin":
+		_ = exec.Command("open", path).Start()
+	case "linux":
+		_ = exec.Command("xdg-open", path).Start()
+	default:
+		logger.Warn("Manual edit mode is not supported on this OS.")
+	}
 }
