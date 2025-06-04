@@ -1,4 +1,4 @@
-package pinterest
+package assemble
 
 import (
 	"fmt"
@@ -8,18 +8,24 @@ import (
 	"image/color"
 )
 
+const (
+	MaxWidth  = 1080
+	MaxHeight = 1920
+	Padding   = 10
+)
+
 func assembleFlowLayout(images []image.Image, layout string, outputPrefix string) error {
 	logger := common.GetLogger()
 	cols := getColumnsForLayout(layout)
 	if cols <= 0 {
 		return fmt.Errorf("unknown layout: %s", layout)
 	}
-	tileW := (maxWidth - (cols-1)*padding) / cols
+	tileW := (MaxWidth - (cols-1)*Padding) / cols
 
 	page := 1
 	cursor := 0
 	for cursor < len(images) {
-		canvas := imaging.New(maxWidth, maxHeight, color.NRGBA{255, 255, 255, 255})
+		canvas := imaging.New(MaxWidth, MaxHeight, color.NRGBA{255, 255, 255, 255})
 		x, y := 0, 0
 		rowHeight := 0
 
@@ -29,18 +35,18 @@ func assembleFlowLayout(images []image.Image, layout string, outputPrefix string
 			aspect := float64(r.Dx()) / float64(r.Dy())
 			th := int(float64(tileW) / aspect)
 
-			if x+tileW > maxWidth {
+			if x+tileW > MaxWidth {
 				x = 0
-				y += rowHeight + padding
+				y += rowHeight + Padding
 				rowHeight = 0
 			}
-			if y+th > maxHeight {
+			if y+th > MaxHeight {
 				break
 			}
 
 			resized := imaging.Resize(img, tileW, th, imaging.Lanczos)
 			canvas = imaging.Paste(canvas, resized, image.Pt(x, y))
-			x += tileW + padding
+			x += tileW + Padding
 			if th > rowHeight {
 				rowHeight = th
 			}

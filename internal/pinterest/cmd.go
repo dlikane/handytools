@@ -2,21 +2,22 @@ package pinterest
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
+	"handytools/pkg/assemble"
 	"handytools/pkg/common"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
-
-	"github.com/spf13/cobra"
 )
 
 type Config struct {
-	BoardURL string
-	Output   string
-	Layout   string
-	Edit     bool
+	BoardURL  string
+	Output    string
+	Layout    string
+	Edit      bool
+	Directory string
 }
 
 var config Config
@@ -27,50 +28,59 @@ var Cmd = &cobra.Command{
 	Short: "Download pins from a Pinterest board and assemble into image(s)",
 	Long:  "Downloads images from a Pinterest board and assembles them into collages with specified layout: compact, medium, large, fit.",
 	Run: func(cmd *cobra.Command, args []string) {
-		if config.BoardURL == "" {
-			logger.Error("Pinterest board URL is required")
+		if config.BoardURL == "" && config.Directory == "" {
+			logger.Error("Pinterest board URL or directory is required")
 			return
 		}
 
-		logger.Infof("Fetching board: %s", config.BoardURL)
+		if config.BoardURL != "" {
+			logger.Infof("Fetching board: %s", config.BoardURL)
 
-		tempDir := filepath.Join(os.TempDir(), "pinterest_pins")
-		os.MkdirAll(tempDir, 0755)
+			tempDir := filepath.Join(os.TempDir(), "pinterest_pins")
+			os.MkdirAll(tempDir, 0755)
 
-		imagePaths, err := DownloadPins(config.BoardURL, tempDir)
-		if err != nil {
-			logger.Errorf("Failed to download pins: %+v", err)
-			return
-		}
-
-		if len(imagePaths) == 0 {
-			logger.Warn("No images downloaded")
-			return
-		}
-
-		logger.Infof("Downloaded %d pins", len(imagePaths))
-
-		if config.Edit {
-			logger.Info("Opening temp folder for manual edits...")
-			openInExplorer(tempDir)
-
-			fmt.Println("Press ENTER when done editing the images...")
-			fmt.Scanln()
-
-			imagePaths = nil
-			entries, _ := os.ReadDir(tempDir)
-			for _, entry := range entries {
-				if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".jpg") {
-					imagePaths = append(imagePaths, filepath.Join(tempDir, entry.Name()))
-				}
+			imagePaths, err := DownloadPins(config.BoardURL, tempDir)
+			if err != nil {
+				logger.Errorf("Failed to download pins: %+v", err)
+				return
 			}
-			logger.Infof("Reloaded %d images after editing", len(imagePaths))
-		}
 
-		output := strings.TrimSuffix(config.Output, ".jpg")
-		err = AssembleImages(imagePaths, config.Layout, output)
-		if err != nil {
-			logger.WithError(err).Error("Failed to assemble collage")
+			if len(imagePaths) == 0 {
+				logger.Warn("No images downloaded")
+				return
+			}
+
+			logger.Infof("Downloaded %d pins", len(imagePaths))
+
+			if config.Edit {
+				logger.Info("Opening temp folder for manual edits...")
+				openInExplorer(tempDir)
+
+				fmt.Println("Press ENTER when done editing the images...")
+				fmt.Scanln()
+
+				imagePaths = nil
+				entries, _ := os.ReadDir(tempDir)
+				for _, entry := range entries {
+					if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".jpg") {
+						imagePaths = append(imagePaths, filepath.Join(tempDir, entry.Name()))
+					}
+				}
+				logger.Infof("Reloaded %d images after editing", len(imagePaths))
+			}
+		} else if config.Directory != "" {
+			// Assemble from the directory instead
+			logger.Infof("Assembling images from directory: %s", config.Directory)
+			imagePaths, err := assemble.AssembleFromDirectory(assemble.Config{
+				Directory: config.Directory,
+				Output:    config.Output,
+				Layout:    config.Layout,
+			})
+			if err != nil {
+				logger.WithError(err).Error("Failed to assemble images from directory")
+				return
+			}
+			logger.Infof("Assembled %d images from directory", len(imagePaths))
 		}
 	},
 }
@@ -80,6 +90,7 @@ func init() {
 	Cmd.Flags().StringVarP(&config.Output, "output", "o", "pinterest.jpg", "Output image path prefix (e.g., output/pin.jpg → output/pin_01.jpg etc)")
 	Cmd.Flags().StringVarP(&config.Layout, "layout", "l", "fit", "Layout mode: compact (6x), medium (3x), large (1x), fit (auto-fit into 1080x1920)")
 	Cmd.Flags().BoolVarP(&config.Edit, "edit", "e", false, "Edit mode: open downloaded images before assembling")
+	Cmd.Flags().StringVarP(&config.Directory, "directory", "d", "", "Directory to assemble images from (if not downloading from Pinterest)")
 }
 
 func openInExplorer(path string) {

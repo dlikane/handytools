@@ -1,4 +1,4 @@
-package pinterest
+package assemble
 
 func getColumnsForLayout(layout string) int {
 	switch layout {
