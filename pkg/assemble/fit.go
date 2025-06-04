@@ -1,4 +1,4 @@
-package pinterest
+package assemble
 
 import (
 	"fmt"
