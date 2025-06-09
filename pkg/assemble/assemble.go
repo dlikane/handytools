@@ -5,64 +5,45 @@ import (
 	"github.com/disintegration/imaging"
 	"handytools/pkg/common"
 	"image"
-	"os"
-	"path/filepath"
-	"strings"
 )
-
-type Config struct {
-	Directory string
-	Output    string
-	Layout    string
-}
 
 var logger = common.GetLogger()
 
-func AssembleFromDirectory(config Config) ([]string, error) {
-	var imagePaths []string
-
-	// Read all files from the directory
-	entries, err := os.ReadDir(config.Directory)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read directory: %w", err)
-	}
-
-	for _, entry := range entries {
-		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".jpg") {
-			imagePaths = append(imagePaths, filepath.Join(config.Directory, entry.Name()))
-		}
-	}
-
-	if len(imagePaths) == 0 {
-		return nil, fmt.Errorf("no valid images found in directory")
-	}
-
-	// Assemble images into output file
-	outputPrefix := strings.TrimSuffix(config.Output, ".jpg")
-	err = AssembleImages(imagePaths, config.Layout, outputPrefix)
-	if err != nil {
-		return nil, fmt.Errorf("failed to assemble images: %w", err)
-	}
-
-	return imagePaths, nil
-}
-
-func AssembleImages(paths []string, layout string, outputPrefix string) error {
+func AssembleImagesWithMax(paths []string, outputPrefix string) error {
+	logger.Infof("Assemble images: %d", len(paths))
 	var images []image.Image
 	for _, path := range paths {
 		img, err := imaging.Open(path)
 		if err != nil {
-			logger.WithError(err).Warnf("Skipping image: %s", path)
+			logger.WithError(err).Warn("Skipping image: ", path)
 			continue
 		}
 		images = append(images, img)
+		if len(images)%5 == 0 {
+			logger.Infof("Assembled images: %d", len(images))
+		}
 	}
 	if len(images) == 0 {
 		return fmt.Errorf("no valid images to assemble")
 	}
 
-	if layout == "fit" {
-		return assembleTightFit(images, outputPrefix)
+	canvas, pageBreaks, err := buildContinuousCanvas(images)
+	if err != nil {
+		return fmt.Errorf("failed to build canvas: %w", err)
 	}
-	return assembleFlowLayout(images, layout, outputPrefix)
+
+	for i, y := range pageBreaks {
+		var top int
+		if i > 0 {
+			top = pageBreaks[i-1]
+		}
+		cropped := imaging.Crop(canvas, image.Rect(0, top, maxWidth, y))
+		out := fmt.Sprintf("%s_%02d.jpg", outputPrefix, i+1)
+		if err := imaging.Save(cropped, out); err != nil {
+			return fmt.Errorf("failed to save page %d: %w", i+1, err)
+		}
+		logger.Infof("Saved page: %s", out)
+	}
+
+	return nil
 }
