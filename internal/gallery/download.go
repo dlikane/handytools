@@ -1,4 +1,4 @@
-package pinterest
+package gallery
 
 import (
 	"context"

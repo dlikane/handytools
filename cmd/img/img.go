@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"handytools/internal/pinterest"
 	"os"
 
 	"handytools/internal/batchrename"
 	"handytools/internal/collage"
+	"handytools/internal/gallery"
 	"handytools/internal/grab"
 	"handytools/internal/optimise"
 	"handytools/internal/rename"
@@ -29,7 +29,7 @@ func init() {
 	rootCmd.AddCommand(grab.Cmd)
 	rootCmd.AddCommand(optimise.Cmd)
 	rootCmd.AddCommand(rename.Cmd)
-	rootCmd.AddCommand(pinterest.Cmd)
+	rootCmd.AddCommand(gallery.Cmd)
 }
 
 func main() {

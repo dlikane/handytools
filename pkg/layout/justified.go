@@ -22,13 +22,12 @@ type Config struct {
 	MinAspectTotal float64 // Minimum total aspect ratio before forcing row
 }
 
-// Justify returns calculated positions for each image to fit a justified layout.
-func Justify(images []ImageInfo, cfg Config) (placed []PlacedImage, canvasHeight int) {
+// JustifyWithPageSplits returns layout and vertical split points for paging
+func JustifyWithPageSplits(images []ImageInfo, cfg Config, maxPageHeight int) (placed []PlacedImage, canvasHeight int, pageBreaks []int) {
 	if cfg.MinRowItems < 1 {
 		cfg.MinRowItems = 1
 	}
 	if cfg.MinAspectTotal == 0 {
-		// fallback: aspect ratio required to fill full width at target height
 		cfg.MinAspectTotal = float64(cfg.MaxWidth-cfg.Spacing*(cfg.MinRowItems-1)) / float64(cfg.TargetHeight)
 	}
 
@@ -56,6 +55,7 @@ func Justify(images []ImageInfo, cfg Config) (placed []PlacedImage, canvasHeight
 		if ((validHeight && enoughItems) || enoughAspect) || isLast {
 			scale := rowWidth / rowAspect
 			x := 0
+			rowTop := y
 			for j, r := range row {
 				w := int(math.Round(scale * r.Aspect))
 				h := int(math.Round(scale))
@@ -72,8 +72,16 @@ func Justify(images []ImageInfo, cfg Config) (placed []PlacedImage, canvasHeight
 			startIdx = i + 1
 			row = nil
 			rowAspect = 0
+
+			if y-rowTop > 0 && y > 0 && y%maxPageHeight <= int(scale) {
+				pageBreaks = append(pageBreaks, y)
+			}
 		}
 	}
 
-	return placed, y
+	if len(pageBreaks) == 0 || pageBreaks[len(pageBreaks)-1] != y {
+		pageBreaks = append(pageBreaks, y)
+	}
+
+	return placed, y, pageBreaks
 }
