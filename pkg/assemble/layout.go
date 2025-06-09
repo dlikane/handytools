@@ -12,7 +12,7 @@ const (
 	maxWidth     = 1080
 	maxHeight    = 1920
 	defaultRowH  = 320
-	defaultSpace = 10
+	DefaultSpace = 10
 )
 
 func buildContinuousCanvas(images []image.Image) (*image.NRGBA, []int, error) {
@@ -26,7 +26,7 @@ func buildContinuousCanvas(images []image.Image) (*image.NRGBA, []int, error) {
 	cfg := layout.Config{
 		MaxWidth:       maxWidth,
 		TargetHeight:   defaultRowH,
-		Spacing:        defaultSpace,
+		Spacing:        DefaultSpace,
 		Tolerance:      0.25,
 		MinRowItems:    2,
 		MinAspectTotal: 0,

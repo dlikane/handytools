@@ -32,13 +32,16 @@ func AssembleImagesWithMax(paths []string, outputPrefix string) error {
 		return fmt.Errorf("failed to build canvas: %w", err)
 	}
 
+	out := fmt.Sprintf("%s.jpg", outputPrefix)
 	for i, y := range pageBreaks {
 		var top int
 		if i > 0 {
 			top = pageBreaks[i-1]
 		}
-		cropped := imaging.Crop(canvas, image.Rect(0, top, maxWidth, y))
-		out := fmt.Sprintf("%s_%02d.jpg", outputPrefix, i+1)
+		cropped := imaging.Crop(canvas, image.Rect(0, top, maxWidth, y-DefaultSpace))
+		if len(pageBreaks) > 1 {
+			out = fmt.Sprintf("%s_%02d.jpg", outputPrefix, i+1)
+		}
 		if err := imaging.Save(cropped, out); err != nil {
 			return fmt.Errorf("failed to save page %d: %w", i+1, err)
 		}
