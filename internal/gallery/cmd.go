@@ -12,10 +12,11 @@ import (
 )
 
 type Config struct {
-	BoardURL  string
-	Output    string
-	Directory string
-	InputList string
+	BoardURL   string
+	Output     string
+	Directory  string
+	InputList  string
+	FitOnePage bool
 }
 
 var config Config
@@ -84,7 +85,7 @@ var Cmd = &cobra.Command{
 		}
 
 		output := strings.TrimSuffix(config.Output, ".jpg")
-		err := assemble.AssembleImagesWithMax(imagePaths, output)
+		err := assemble.AssembleImagesWithMax(imagePaths, output, config.FitOnePage)
 		if err != nil {
 			logger.WithError(err).Error("Failed to assemble gallery")
 		}
@@ -96,4 +97,5 @@ func init() {
 	Cmd.Flags().StringVarP(&config.Output, "output", "o", "gallery.jpg", "Output image path prefix (e.g., out/gallery_01.jpg)")
 	Cmd.Flags().StringVarP(&config.Directory, "directory", "d", "", "Directory to read .jpg files from")
 	Cmd.Flags().StringVarP(&config.InputList, "file", "f", "", "Text file with list of image paths")
+	Cmd.Flags().BoolVar(&config.FitOnePage, "fitOnePage", true, "Try to fit images into one page (default true)")
 }

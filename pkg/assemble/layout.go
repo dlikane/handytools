@@ -15,7 +15,7 @@ const (
 	DefaultSpace = 10
 )
 
-func buildContinuousCanvas(images []image.Image) (*image.NRGBA, []int, error) {
+func buildContinuousCanvas(images []image.Image, fitOnePage bool) (*image.NRGBA, []int, error) {
 	var infos []layout.ImageInfo
 	for _, img := range images {
 		b := img.Bounds()
@@ -23,18 +23,31 @@ func buildContinuousCanvas(images []image.Image) (*image.NRGBA, []int, error) {
 		infos = append(infos, layout.ImageInfo{Aspect: aspect})
 	}
 
-	cfg := layout.Config{
-		MaxWidth:       maxWidth,
-		TargetHeight:   defaultRowH,
-		Spacing:        DefaultSpace,
-		Tolerance:      0.25,
-		MinRowItems:    2,
-		MinAspectTotal: 0,
+	rowHeight := defaultRowH
+	var positions []layout.PlacedImage
+	var canvasHeight int
+	var pageBreaks []int
+
+	for {
+		cfg := layout.Config{
+			MaxWidth:       maxWidth,
+			TargetHeight:   rowHeight,
+			Spacing:        DefaultSpace,
+			Tolerance:      0.25,
+			MinRowItems:    2,
+			MinAspectTotal: 0,
+		}
+
+		positions, canvasHeight, pageBreaks = layout.JustifyWithPageSplits(infos, cfg, maxHeight)
+
+		if !fitOnePage || len(pageBreaks) <= 1 || rowHeight <= 100 {
+			break
+		}
+
+		rowHeight -= 20
 	}
 
-	positions, canvasHeight, pageBreaks := layout.JustifyWithPageSplits(infos, cfg, maxHeight)
-	canvas := imaging.New(cfg.MaxWidth, canvasHeight, color.NRGBA{255, 255, 255, 255})
-
+	canvas := imaging.New(maxWidth, canvasHeight, color.NRGBA{255, 255, 255, 255})
 	for _, pos := range positions {
 		if pos.Index >= len(images) {
 			continue

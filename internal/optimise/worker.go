@@ -137,8 +137,13 @@ func handleImage(filePath string, cfg Config, summary *statSummary) {
 	newSize := newFileInfo.Size()
 	summary.TotalResized += newSize
 
-	logger.Infof("%s org: %dx%d %.2f MB %s: %dx%d %.2f MB (- applied)", filepath.Base(filePath), origWidth, origHeight, float64(origSize)/(1024*1024), cfg.Profile, newWidth, newHeight, float64(newSize)/(1024*1024))
-
+	dry := "dry run"
+	if cfg.Apply {
+		dry = "applied"
+	}
+	logger.Infof("%s org: %dx%d %.2f MB %s: %dx%d %.2f MB (%s)",
+		filepath.Base(filePath), origWidth, origHeight, float64(origSize)/(1024*1024),
+		cfg.Profile, newWidth, newHeight, float64(newSize)/(1024*1024), dry)
 	if cfg.Apply {
 		if err := replaceFile(tempOutputPath, filePath, logger); err != nil {
 			logger.WithError(err).Errorf("Failed to replace original file: %s", filePath)
@@ -166,7 +171,7 @@ func printSummary(cfg Config, summary statSummary) {
 		}
 		logger.Info(line)
 	} else {
-		logger.Infof("files: %d org: %.2f MB %s: %.2f MB (- applied)", len(summary.Files), float64(summary.TotalOriginal)/(1024*1024), cfg.Profile, float64(summary.TotalResized)/(1024*1024))
+		logger.Infof("files: %d org: %.2f MB %s: %.2f MB", len(summary.Files), float64(summary.TotalOriginal)/(1024*1024), cfg.Profile, float64(summary.TotalResized)/(1024*1024))
 	}
 }
 

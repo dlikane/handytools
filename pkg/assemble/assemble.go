@@ -2,20 +2,21 @@ package assemble
 
 import (
 	"fmt"
-	"github.com/disintegration/imaging"
 	"handytools/pkg/common"
 	"image"
+
+	"github.com/disintegration/imaging"
 )
 
 var logger = common.GetLogger()
 
-func AssembleImagesWithMax(paths []string, outputPrefix string) error {
+func AssembleImagesWithMax(paths []string, outputPrefix string, fitOnePage bool) error {
 	logger.Infof("Assemble images: %d", len(paths))
 	var images []image.Image
 	for _, path := range paths {
 		img, err := imaging.Open(path)
 		if err != nil {
-			logger.WithError(err).Warn("Skipping image: ", path, " ", err)
+			logger.WithError(err).Warn("Skipping image: ", path)
 			continue
 		}
 		images = append(images, img)
@@ -27,7 +28,7 @@ func AssembleImagesWithMax(paths []string, outputPrefix string) error {
 		return fmt.Errorf("no valid images to assemble")
 	}
 
-	canvas, pageBreaks, err := buildContinuousCanvas(images)
+	canvas, pageBreaks, err := buildContinuousCanvas(images, fitOnePage)
 	if err != nil {
 		return fmt.Errorf("failed to build canvas: %w", err)
 	}
