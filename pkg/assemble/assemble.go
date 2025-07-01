@@ -15,7 +15,7 @@ func AssembleImagesWithMax(paths []string, outputPrefix string) error {
 	for _, path := range paths {
 		img, err := imaging.Open(path)
 		if err != nil {
-			logger.WithError(err).Warn("Skipping image: ", path)
+			logger.WithError(err).Warn("Skipping image: ", path, " ", err)
 			continue
 		}
 		images = append(images, img)

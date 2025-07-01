@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func main() {
+func main1() {
 	rootDir := flag.String("root", `R:\Dropbox\Apps\my-photo-site`, "Root directory to search in")
 	fromDir := flag.String("from", "b&w", "Source subdirectory (e.g., b&w)")
 	toSuffix := flag.String("to", "b&w_fav", "Suffix to add to matched files")

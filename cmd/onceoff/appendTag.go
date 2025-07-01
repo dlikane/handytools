@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func main() {
+func mainAT() {
 	dir := flag.String("dir", ".", "Directory to scan (non-recursive)")
 	tag := flag.String("tag", "", "Tag to append before .jpg (e.g., _fav)")
 	apply := flag.Bool("a", false, "Apply renaming (default is dry-run)")
