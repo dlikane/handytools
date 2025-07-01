@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func main() {
+func main2() {
 	sourceRoot := `R:\Dropbox\Apps\my-photo-site`
 	destDir := `C:\tmp\small`
 
