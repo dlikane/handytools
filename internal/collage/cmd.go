@@ -8,10 +8,11 @@ import (
 )
 
 type Config struct {
-	InputFiles []string
-	OutputFile string
-	Rows       int
-	Columns    int
+	InputFiles  []string
+	OutputFile  string
+	Rows        int
+	Columns     int
+	AspectRatio string // "free" or "4x5"
 }
 
 var (
@@ -29,7 +30,11 @@ var Cmd = &cobra.Command{
 			return
 		}
 		config.InputFiles = expandWildcards(args)
-		logger.Info("Running collage with config: %+v\n", config)
+		if config.AspectRatio != "free" && config.AspectRatio != "4x5" {
+			logger.Error("Invalid aspect ratio. Use 'free' or '4x5'")
+			return
+		}
+		logger.Infof("Running collage with config: %+v", config)
 		createCollage(config)
 	},
 }
@@ -38,6 +43,7 @@ func init() {
 	Cmd.Flags().IntVarP(&config.Rows, "rows", "r", 1, "Number of rows")
 	Cmd.Flags().IntVarP(&config.Columns, "columns", "c", 1, "Number of columns")
 	Cmd.Flags().StringVarP(&config.OutputFile, "output", "o", "collage.jpg", "Output file")
+	Cmd.Flags().StringVarP(&config.AspectRatio, "aspect", "a", "free", "Output aspect ratio: 'free' or '4x5'")
 }
 
 func expandWildcards(patterns []string) []string {
