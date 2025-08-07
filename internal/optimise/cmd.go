@@ -1,8 +1,9 @@
 package optimise
 
 import (
-	"github.com/spf13/cobra"
 	"handytools/pkg/common"
+
+	"github.com/spf13/cobra"
 )
 
 type Config struct {
@@ -40,5 +41,11 @@ var Cmd = &cobra.Command{
 func init() {
 	Cmd.Flags().BoolVarP(&config.Apply, "apply", "a", false, "Apply changes (default is dry-run)")
 	Cmd.Flags().BoolVarP(&config.Stat, "stat", "s", false, "Collect image profile statistics (mutually exclusive with --apply)")
-	Cmd.Flags().StringVarP(&config.Profile, "profile", "p", "insta", "Profile size (x-small, small, med, large, x-large, insta)")
+	Cmd.Flags().StringVarP(&config.Profile, "profile", "p", "insta", `Profile size for resizing:
+  x-small = 1080
+  small   = 1440
+  med     = 1920
+  large   = 2560
+  x-large = original size (no resizing)
+  insta   = 1350 (Instagram optimal 1080x1350 4:5 portrait)`)
 }

@@ -2,13 +2,14 @@ package optimise
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"handytools/pkg/common"
 	"image"
 	_ "image/jpeg"
 	_ "image/png"
 	"os"
 	"path/filepath"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/disintegration/imaging"
 )
