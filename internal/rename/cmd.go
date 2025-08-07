@@ -1,8 +1,9 @@
 package rename
 
 import (
-	"github.com/spf13/cobra"
 	"handytools/pkg/common"
+
+	"github.com/spf13/cobra"
 )
 
 type RenameConfig struct {

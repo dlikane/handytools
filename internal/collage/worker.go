@@ -1,12 +1,13 @@
 package collage
 
 import (
-	"github.com/disintegration/imaging"
 	"handytools/pkg/common"
 	"image"
 	"image/color"
 	"math"
 	"os"
+
+	"github.com/disintegration/imaging"
 )
 
 func scaleImages(images []image.Image, width, height int) []image.Image {
