@@ -19,7 +19,7 @@ var profiles = map[string]int{
 	"small":   1440,
 	"med":     1920,
 	"large":   2560,
-	"x-large": 0,    // original size, no resizing
+	"origin":  0,    // original size 85% jpg
 	"insta":   1350, // insta optimal 1080 x 1350 4:5 portrait
 }
 
@@ -41,6 +41,7 @@ type fileStat struct {
 type statSummary struct {
 	Files         []fileStat
 	Totals        map[string]int64
+	TotalFiles    int64
 	TotalOriginal int64
 	TotalResized  int64
 }
@@ -83,6 +84,8 @@ func handleImage(filePath string, cfg Config, summary *statSummary) {
 	file.Close()
 
 	summary.TotalOriginal += origSize
+	summary.TotalFiles++
+
 	entry := fileStat{
 		Filename: filepath.Base(filePath),
 		OrigW:    origWidth,
@@ -120,9 +123,12 @@ func handleImage(filePath string, cfg Config, summary *statSummary) {
 		logger.Errorf("Invalid profile: %s", cfg.Profile)
 		return
 	}
-	if maxSize == 0 || (origWidth <= maxSize && origHeight <= maxSize) {
+	if maxSize != 0 && (origWidth <= maxSize && origHeight <= maxSize) {
 		logger.Infof("Skipping %s (already within size limits or original size requested)", filePath)
 		return
+	}
+	if maxSize == 0 {
+		maxSize = max(origWidth, origHeight)
 	}
 
 	newWidth, newHeight := scaleDimensions(origWidth, origHeight, maxSize)
@@ -160,19 +166,19 @@ func printSummary(cfg Config, summary statSummary) {
 	if cfg.Stat {
 		for _, entry := range summary.Files {
 			line := fmt.Sprintf("%s org: %dx%d %.2f MB", entry.Filename, entry.OrigW, entry.OrigH, float64(entry.OrigSize)/(1024*1024))
-			for _, key := range []string{"x-large", "large", "med", "small", "x-small"} {
+			for _, key := range []string{"origin", "large", "med", "small", "x-small"} {
 				p := entry.Profiles[key]
 				line += fmt.Sprintf(" %s: %dx%d %.2f MB", key, p.Width, p.Height, float64(p.SizeBytes)/(1024*1024))
 			}
 			logger.Info(line)
 		}
 		line := fmt.Sprintf("files: %d org: %.2f MB", len(summary.Files), float64(summary.TotalOriginal)/(1024*1024))
-		for _, key := range []string{"x-large", "large", "med", "small", "x-small"} {
+		for _, key := range []string{"origin", "large", "med", "small", "x-small"} {
 			line += fmt.Sprintf(" %s: %.2f MB", key, float64(summary.Totals[key])/(1024*1024))
 		}
 		logger.Info(line)
 	} else {
-		logger.Infof("files: %d org: %.2f MB %s: %.2f MB", len(summary.Files), float64(summary.TotalOriginal)/(1024*1024), cfg.Profile, float64(summary.TotalResized)/(1024*1024))
+		logger.Infof("files: %d org: %.2f MB %s: %.2f MB", summary.TotalFiles, float64(summary.TotalOriginal)/(1024*1024), cfg.Profile, float64(summary.TotalResized)/(1024*1024))
 	}
 }
 
