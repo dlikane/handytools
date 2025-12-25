@@ -46,6 +46,6 @@ func init() {
   small   = 1440
   med     = 1920
   large   = 2560
-  x-large = original size (no resizing)
+  origin  = original size (no resizing, qty: 85%)
   insta   = 1350 (Instagram optimal 1080x1350 4:5 portrait)`)
 }
