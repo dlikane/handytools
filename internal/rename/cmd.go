@@ -12,7 +12,7 @@ type RenameConfig struct {
 	OutputName string
 	InputFiles []string
 	Apply      bool
-	SortBy     string // created, modified, name
+	SortBy     string // created, modified, name, random
 	Order      string // asc, desc
 }
 
@@ -41,10 +41,10 @@ var Cmd = &cobra.Command{
 			config.SortBy = "created"
 		}
 		switch config.SortBy {
-		case "created", "modified", "name":
+		case "created", "modified", "name", "random":
 			// ok
 		default:
-			logger.Errorf("Invalid --sort value: %s (use 'created', 'modified', or 'name')", config.SortBy)
+			logger.Errorf("Invalid --sort value: %s (use 'created', 'modified', 'name', or 'random')", config.SortBy)
 			return
 		}
 
@@ -69,6 +69,6 @@ var Cmd = &cobra.Command{
 func init() {
 	Cmd.Flags().StringVarP(&config.OutputName, "output", "o", "", "Base name for renaming files")
 	Cmd.Flags().BoolVarP(&config.Apply, "apply", "a", false, "Apply changes (default is dry-run)")
-	Cmd.Flags().StringVarP(&config.SortBy, "sort", "s", "created", "Sort input files by: created | modified | name")
+	Cmd.Flags().StringVarP(&config.SortBy, "sort", "s", "created", "Sort input files by: created | modified | name | random")
 	Cmd.Flags().StringVarP(&config.Order, "order", "r", "asc", "Sort order: asc | desc")
 }

@@ -2,6 +2,7 @@ package rename
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"sort"
@@ -44,6 +45,12 @@ func sortFiles(paths []string, sortBy, order string) ([]fileItem, error) {
 			CreateTime: creationTime(info),
 			ModTime:    info.ModTime().UTC(),
 		})
+	}
+
+	if sortBy == "random" {
+		r := rand.New(rand.NewSource(time.Now().UnixNano()))
+		r.Shuffle(len(items), func(i, j int) { items[i], items[j] = items[j], items[i] })
+		return items, nil
 	}
 
 	less := func(i, j int) bool {
