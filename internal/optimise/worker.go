@@ -8,6 +8,7 @@ import (
 	_ "image/png"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -81,6 +82,7 @@ func handleImage(filePath string, cfg Config, summary *statSummary) {
 	origWidth, origHeight := img.Bounds().Dx(), img.Bounds().Dy()
 	origFileInfo, _ := file.Stat()
 	origSize := origFileInfo.Size()
+	origModTime := origFileInfo.ModTime()
 	file.Close()
 
 	summary.TotalOriginal += origSize
@@ -152,7 +154,7 @@ func handleImage(filePath string, cfg Config, summary *statSummary) {
 		filepath.Base(filePath), origWidth, origHeight, float64(origSize)/(1024*1024),
 		cfg.Profile, newWidth, newHeight, float64(newSize)/(1024*1024), dry)
 	if cfg.Apply {
-		if err := replaceFile(tempOutputPath, filePath, logger); err != nil {
+		if err := replaceFile(tempOutputPath, filePath, origModTime, logger); err != nil {
 			logger.WithError(err).Errorf("Failed to replace original file: %s", filePath)
 			return
 		}
@@ -182,12 +184,15 @@ func printSummary(cfg Config, summary statSummary) {
 	}
 }
 
-func replaceFile(tempPath, originalPath string, logger *logrus.Logger) error {
+func replaceFile(tempPath, originalPath string, modTime time.Time, logger *logrus.Logger) error {
 	if err := os.Remove(originalPath); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("failed to remove original file: %w", err)
 	}
 	if err := os.Rename(tempPath, originalPath); err != nil {
 		return fmt.Errorf("failed to rename file: %w", err)
+	}
+	if err := os.Chtimes(originalPath, modTime, modTime); err != nil {
+		return fmt.Errorf("failed to restore file times: %w", err)
 	}
 	return nil
 }
