@@ -6,6 +6,8 @@ import (
 
 	"handytools/internal/batchrename"
 	"handytools/internal/collage"
+	"handytools/internal/distort"
+	"handytools/internal/frame"
 	"handytools/internal/gallery"
 	"handytools/internal/grab"
 	"handytools/internal/optimise"
@@ -26,6 +28,8 @@ var rootCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(batchrename.Cmd)
 	rootCmd.AddCommand(collage.Cmd)
+	rootCmd.AddCommand(distort.Cmd)
+	rootCmd.AddCommand(frame.Cmd)
 	rootCmd.AddCommand(grab.Cmd)
 	rootCmd.AddCommand(optimise.Cmd)
 	rootCmd.AddCommand(rename.Cmd)
