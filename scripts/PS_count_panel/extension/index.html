@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Arial, sans-serif;
+    background: #323232;
+    color: #b8b8b8;
+    font-size: 12px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    gap: 6px;
+  }
+  #head { display: flex; align-items: baseline; justify-content: space-between; }
+  #count { font-size: 15px; font-weight: bold; color: #e8e8e8; }
+  #evt { font-size: 10px; color: #666; }
+  #list { flex: 1; overflow-y: auto; }
+  .doc-item {
+    padding: 5px 8px; cursor: pointer;
+    border-bottom: 1px solid #2a2a2a;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .doc-item:hover { background: #3d3d3d; }
+  .doc-item.active { background: #1473e6; color: #fff; }
+</style>
+</head>
+<body>
+
+<div id="head">
+  <div id="count">Open files: …</div>
+  <div id="evt">evt: 0</div>
+</div>
+<div id="list"></div>
+
+<script>
+  var lastRaw = null;
+  var polling = false;
+
+  function evalPS(script, cb) {
+    if (window.__adobe_cep__ && typeof window.__adobe_cep__.evalScript === 'function') {
+      window.__adobe_cep__.evalScript(script, cb);
+    } else {
+      cb('ERROR: no bridge');
+    }
+  }
+
+  var evalScript =
+    'var _r="";' +
+    'try{' +
+    '  var _c=app.documents.length;' +
+    '  var _a=_c>0?app.activeDocument.name:"";' +
+    '  var _names=[];' +
+    '  for(var _i=0;_i<_c;_i++) _names.push(app.documents[_i].name);' +
+    '  _r=_c+"|"+_a+"|"+_names.join("|");' +
+    '}catch(_e){_r="ERR:"+_e.message;}' +
+    '_r;';
+
+  // --- Live push channel: TCP loopback socket ---
+  // The script step inside the action connects to this port and sends the
+  // current document count. This runs in the panel's OWN process (Node/CEF),
+  // so it keeps receiving even while PS's main thread is blocked by a Batch —
+  // unlike CSXSEvent or evalScript, which are stuck behind PS's message pump.
+  var PORT = 45678;
+  var evtCount = 0;
+
+  // Socket payload is the same pipe format as evalScript: COUNT|ACTIVE|name1|name2|...
+  function pushCount(str) {
+    evtCount++;
+    document.getElementById('evt').textContent = 'evt: ' + evtCount;
+    var raw = String(str);
+    if (raw.indexOf('|') === -1) return;
+    if (raw === lastRaw) return;
+    lastRaw = raw;
+    var parts  = raw.split('|');
+    var count  = parseInt(parts[0], 10) || 0;
+    var active = parts[1] || '';
+    var docs   = count > 0 ? parts.slice(2, 2 + count) : [];
+    renderList(count, active, docs);
+  }
+
+  var net = (typeof require === 'function') ? require('net') : null;
+  if (net) {
+    try {
+      var server = net.createServer(function(sock) {
+        var buf = '';
+        sock.on('data', function(d) { buf += d.toString(); });
+        sock.on('end', function() { pushCount(buf); });
+        sock.on('error', function() {});
+      });
+      server.on('error', function(e) {
+        document.getElementById('evt').textContent = 'evt: port busy';
+      });
+      server.listen(PORT, '127.0.0.1');
+    } catch (e) {
+      document.getElementById('evt').textContent = 'evt: no net';
+    }
+  } else {
+    document.getElementById('evt').textContent = 'evt: no node';
+  }
+
+  function update() {
+    if (polling) return;
+    polling = true;
+    evalPS(evalScript, function(raw) {
+      polling = false;
+      if (!raw || raw.indexOf('ERR:') === 0 || raw === 'EvalScript error.') return;
+      if (raw === lastRaw) return;
+      lastRaw = raw;
+      var parts  = raw.split('|');
+      var count  = parseInt(parts[0], 10) || 0;
+      var active = parts[1] || '';
+      var docs   = count > 0 ? parts.slice(2, 2 + count) : [];
+      renderList(count, active, docs);
+    });
+  }
+
+  function renderList(count, active, docs) {
+    document.getElementById('count').textContent = 'Open files: ' + count;
+    var list = document.getElementById('list');
+    list.innerHTML = '';
+    docs.forEach(function(name, i) {
+      var el = document.createElement('div');
+      el.className = 'doc-item' + (name === active ? ' active' : '');
+      el.textContent = (i + 1) + '.  ' + name;
+      el.title = name;
+      el.onclick = (function(idx) {
+        return function() {
+          evalPS('app.activeDocument = app.documents[' + idx + '];',
+            function() { lastRaw = null; update(); });
+        };
+      })(i);
+      list.appendChild(el);
+    });
+  }
+
+  update();
+  setInterval(update, 500);
+</script>
+</body>
+</html>
