@@ -94,7 +94,7 @@ func TestLogger_UsesCustomFormatter(t *testing.T) {
 
 	logger.Info("hello world")
 	out := buf.String()
-	if !strings.Contains(out, "info: hello world") {
+	if !strings.HasPrefix(out, "info:") || !strings.Contains(out, "hello world") {
 		t.Fatalf("expected formatted output, got %q", out)
 	}
 }

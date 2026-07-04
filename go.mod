@@ -5,7 +5,6 @@ go 1.23.0
 toolchain go1.24.0
 
 require (
-	github.com/PuerkitoBio/goquery v1.10.3
 	github.com/atotto/clipboard v0.1.4
 	github.com/chromedp/chromedp v0.13.6
 	github.com/disintegration/imaging v1.6.2
@@ -16,7 +15,6 @@ require (
 
 require (
 	github.com/akavel/rsrc v0.10.2 // indirect
-	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/chromedp/cdproto v0.0.0-20250403032234-65de8f5d025b // indirect
 	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/dchest/jsmin v0.0.0-20220218165748-59f39799265f // indirect
@@ -30,6 +28,5 @@ require (
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/stretchr/testify v1.8.4 // indirect
 	golang.org/x/image v0.20.0 // indirect
-	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
 )

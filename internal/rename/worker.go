@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"syscall"
 	"time"
 
 	"handytools/pkg/common"
@@ -18,17 +17,6 @@ type fileItem struct {
 	Name       string
 	CreateTime time.Time
 	ModTime    time.Time
-}
-
-// Cross-platform creation time.
-// Windows: uses CreationTime
-// Others: falls back to ModTime()
-func creationTime(info os.FileInfo) time.Time {
-	if fa, ok := info.Sys().(*syscall.Win32FileAttributeData); ok {
-		ns := fa.CreationTime.Nanoseconds()
-		return time.Unix(0, ns).UTC()
-	}
-	return info.ModTime().UTC()
 }
 
 func sortFiles(paths []string, sortBy, order string) ([]fileItem, error) {
